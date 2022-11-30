@@ -5,25 +5,25 @@ const app = express();
 
 const port = process.env.port || 3000;
 
-// const fortunes =["Conquer your fears or they will conquer you.", 
+// const fortunes =["Conquer your fears or they will conquer you.",
 //                 "Rivers need springs.",
 //                 "Do not fear what you don't know.",
 //                 "You will have a pleasant surprise.",
 //                 "Whenever possible, keep it simple."
 //                 ];
 // const fortune = require('./lib/fortune');
-const handlers = require('./lib/handlers')
+const handlers = require('./lib/handlers');
 
 // configure handlebars view engine
 app.engine('handlebars', expressHandlebars.engine({
-    defaultLayout: 'main',
+  defaultLayout: 'main',
 }));
 
 app.set('view engine', 'handlebars');
 
 // configuring static content
 
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(`${__dirname}/public`));
 
 // app.get('/', (req, res) => {
 //     // res.type('text/plain');
@@ -41,7 +41,6 @@ app.get('/', handlers.home);
 // });
 app.get('/about', handlers.about);
 
-
 // custom 404 page
 // app.use((req, res) => {
 //     // res.type('text/plain');
@@ -51,7 +50,6 @@ app.get('/about', handlers.about);
 //     res.render('404');
 // });
 app.use(handlers.notFound);
-
 
 // custom 500 page
 // app.use((err, req, res, next) => {
@@ -66,15 +64,14 @@ app.use(handlers.notFound);
 
 app.use(handlers.serverError);
 
-
 // app.listen(port, () => console.log(
 //     `Server is listening on port: ${process.env.PORT}\nExpress started on http://localhost:${port}; \npress Ctrl-C to terminate.`
 // ));
 
-if(require.main === module){
-    app.listen(port, () => {
-        console.log(`Server is listening on port: ${process.env.PORT}\nExpress started on http://localhost:${port}; \npress Ctrl-C to terminate.`);
-    })
-} else{
-    module.exports = app;
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server is listening on port: ${process.env.PORT}\nExpress started on http://localhost:${port}; \npress Ctrl-C to terminate.`);
+  });
+} else {
+  module.exports = app;
 }
