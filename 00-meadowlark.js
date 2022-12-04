@@ -1,11 +1,17 @@
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
 const weatherMiddleware = require('./lib/middleware/weather')
+const flashMiddleware = require('./lib/middleware/flash');
 
 const { credentials } = require('./config');
 
 const cookieParser = require('cookie-parser');
 
+const expressSession = require('express-session');
+
+
+const VALID_EMAIL_REGEX = new RegExp('^[a-zA-Z0-9.!#$%&\'*+\/=?^_`{|}~-]+@' + '[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?' + 
+'(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$');
 
 const app = express();
 
@@ -29,6 +35,15 @@ app.set('view engine', 'handlebars');
 
 app.use(cookieParser(credentials.cookieSecret));
 
+//add session support
+app.use(expressSession({
+  resave: false,
+  saveUninitialized: false,
+  secret: credentials.cookieSecret
+}));
+
+app.use(flashMiddleware);
+
 // configuring static content
 
 app.use(express.static(`${__dirname}/public`));
@@ -41,6 +56,35 @@ app.use(express.static(`${__dirname}/public`));
 // });
 
 app.use(weatherMiddleware);
+
+app.post('/newsletter', function(req, res){
+  const name = req.body.name || '', email = req.body.email || '';
+  //input validation
+  if(VALID_EMAIL_REGEX.test(email)){
+    req.session.flash = {
+      type: 'danger',
+      intro: 'Validation error!',
+      message: 'The Email address you entered was not valid.'
+    }
+    return res.redirect(303, '/newsletter');
+  }
+  new NewsLetterSignup({name, email}).save((err) => {
+    if(err){
+      req.session.flash = {
+        type: 'danger',
+        intro: 'Database error!',
+        message: 'There was a database error; please try again later.'
+      }
+      return res.redirect(303, '/newsletter/archive');
+    }
+    req.session.flash = {
+      type: 'success',
+      intro: 'Thank you!',
+      message: 'You have now been signed up for the newsletter.'
+    };
+    return res.redirect(303, '/newsletter/archive');
+  })
+})
 
 app.get('/', handlers.home);
 
