@@ -1,0 +1,30 @@
+<div class="weatherWidget">
+    {{#each partials.weatherContext}}
+    <div class="location">
+        <h3>{{location.name}}</h3>
+        <div>
+            <img src="{{iconUrl}}" alt="{{weather}}">
+        </div>
+        <a href="{{forecastUrl}}">{{weather}}, {{temp}}</a>
+    </div>
+    {{/each}}
+    <div>
+    </div>
+</div>
+    <small style="display: block;">Source: <a href="https://www.weather.gov/documentaion/services-web-api">National Weather Service</a></small>
+    <small>source</small>
+
+<style>
+    .weatherWidget{
+        display: flex;
+        justify-content: center;
+        margin: 1vw auto;
+        background-color: black;
+    }
+
+    .location{
+        background-color: aliceblue;
+        margin: 10px;
+        padding: 10px;
+    }
+</style>

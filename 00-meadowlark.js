@@ -1,5 +1,11 @@
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
+const weatherMiddleware = require('./lib/middleware/weather')
+
+const { credentials } = require('./config');
+
+const cookieParser = require('cookie-parser');
+
 
 const app = express();
 
@@ -21,15 +27,21 @@ app.engine('handlebars', expressHandlebars.engine({
 
 app.set('view engine', 'handlebars');
 
+app.use(cookieParser(credentials.cookieSecret));
+
 // configuring static content
 
 app.use(express.static(`${__dirname}/public`));
+//app.disable('x-powered-by');
 
 // app.get('/', (req, res) => {
 //     // res.type('text/plain');
 //     // res.send('Meadowlark Travel');
 //     res.render('home');
 // });
+
+app.use(weatherMiddleware);
+
 app.get('/', handlers.home);
 
 // app.get('/about', (req, res) => {
@@ -41,6 +53,8 @@ app.get('/', handlers.home);
 // });
 app.get('/about', handlers.about);
 
+app.get('/headers', handlers.headers);
+
 // custom 404 page
 // app.use((req, res) => {
 //     // res.type('text/plain');
@@ -50,6 +64,7 @@ app.get('/about', handlers.about);
 //     res.render('404');
 // });
 app.use(handlers.notFound);
+
 
 // custom 500 page
 // app.use((err, req, res, next) => {
