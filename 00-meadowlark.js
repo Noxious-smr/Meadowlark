@@ -1,6 +1,6 @@
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
-const weatherMiddleware = require('./lib/middleware/weather')
+const weatherMiddleware = require('./lib/middleware/weather');
 const flashMiddleware = require('./lib/middleware/flash');
 
 const { credentials } = require('./config');
@@ -9,6 +9,9 @@ const cookieParser = require('cookie-parser');
 
 const expressSession = require('express-session');
 
+const bodyParser = require('body-parser');
+
+const multiparty = require('multiparty');
 
 const VALID_EMAIL_REGEX = new RegExp('^[a-zA-Z0-9.!#$%&\'*+\/=?^_`{|}~-]+@' + '[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?' + 
 '(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$');
@@ -33,6 +36,8 @@ app.engine('handlebars', expressHandlebars.engine({
 
 app.set('view engine', 'handlebars');
 
+app.use(bodyParser.json());
+
 app.use(cookieParser(credentials.cookieSecret));
 
 //add session support
@@ -42,7 +47,7 @@ app.use(expressSession({
   secret: credentials.cookieSecret
 }));
 
-app.use(flashMiddleware);
+
 
 // configuring static content
 
@@ -56,6 +61,7 @@ app.use(express.static(`${__dirname}/public`));
 // });
 
 app.use(weatherMiddleware);
+//app.use(flashMiddleware);
 
 app.post('/newsletter', function(req, res){
   const name = req.body.name || '', email = req.body.email || '';
@@ -86,6 +92,17 @@ app.post('/newsletter', function(req, res){
   })
 })
 
+app.post('/vacation-photo/:year?/:month?', (req, res) => {
+  const form = new multiparty.Form();
+  console.log("Reached");
+  form.parse(req, (err, fields, files) => {
+    if(err) return res.status(500).send({error: err.message});
+    handlers.vacationPhotoContestProcess(req, res, fields, files);    
+  });
+});
+app.get('/vacation-photo', (req, res) => {
+  res.render('contest/vacation-photo');
+})
 app.get('/', handlers.home);
 
 // app.get('/about', (req, res) => {
@@ -95,9 +112,10 @@ app.get('/', handlers.home);
 //     res.render('about', {fortune: fortune.getFortune()});
 //     //res.render('about');
 // });
-app.get('/about', handlers.about);
+app.get('/api/about', handlers.about);
 
 app.get('/headers', handlers.headers);
+app.get('/vacation-photo-thank-you', (req, res) => res.render('vacation-photo-thank-you'));
 
 // custom 404 page
 // app.use((req, res) => {
@@ -107,6 +125,14 @@ app.get('/headers', handlers.headers);
 //     res.status(404);
 //     res.render('404');
 // });
+
+app.post('/vacation-photo-contest', (req,res) => {
+  const form = new multiparty.Form()
+  form.parse(req, (err, fields, files) => {
+    //if(err) return handlers.api.vacationPhotoContestError(req, res, err.message)
+    handlers.vacationPhotoContest(req, res, fields, files) 
+  }) 
+});
 app.use(handlers.notFound);
 
 
