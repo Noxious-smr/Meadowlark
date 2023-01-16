@@ -1,17 +1,14 @@
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
-const weatherMiddleware = require('./lib/middleware/weather');
-const flashMiddleware = require('./lib/middleware/flash');
+const multiparty = require('multiparty');
+const cookieParser = require('cookie-parser');
+const expressSession = require('express-session');
+const bodyParser = require('body-parser');
+// const flashMiddleware = require('./lib/middleware/flash');
 
 const { credentials } = require('./config');
 
-const cookieParser = require('cookie-parser');
-
-const expressSession = require('express-session');
-
-const bodyParser = require('body-parser');
-
-const multiparty = require('multiparty');
+const weatherMiddleware = require('./lib/middleware/weather');
 
 const VALID_EMAIL_REGEX = new RegExp('^[a-zA-Z0-9.!#$%&\'*+\/=?^_`{|}~-]+@' + '[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?' + 
 '(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$');
@@ -40,19 +37,17 @@ app.use(bodyParser.json());
 
 app.use(cookieParser(credentials.cookieSecret));
 
-//add session support
+// add session support
 app.use(expressSession({
   resave: false,
   saveUninitialized: false,
-  secret: credentials.cookieSecret
+  secret: credentials.cookieSecret,
 }));
-
-
 
 // configuring static content
 
 app.use(express.static(`${__dirname}/public`));
-//app.disable('x-powered-by');
+// app.disable('x-powered-by');
 
 // app.get('/', (req, res) => {
 //     // res.type('text/plain');
@@ -61,12 +56,13 @@ app.use(express.static(`${__dirname}/public`));
 // });
 
 app.use(weatherMiddleware);
-//app.use(flashMiddleware);
+// app.use(flashMiddleware);
 
 app.post('/newsletter', function(req, res){
-  const name = req.body.name || '', email = req.body.email || '';
-  //input validation
-  if(VALID_EMAIL_REGEX.test(email)){
+  const name = req.body.name || '';
+  const email = req.body.email || '';  
+  // input validation
+  if (VALID_EMAIL_REGEX.test(email)){
     req.session.flash = {
       type: 'danger',
       intro: 'Validation error!',
